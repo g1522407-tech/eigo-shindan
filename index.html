@@ -74,7 +74,9 @@ h3.sec{font-size:15px; margin:18px 0 6px; border-left:4px solid var(--accent); p
     <li>わからない問題は<b>勘で選ばず「わからない」を選んで</b>ください(診断の精度が上がります)</li>
     <li>聞き取りパートは音が出ます。音量を確認してください</li>
   </ul>
-  <div class="btn-row"><button class="btn" onclick="startTest()">テストを始める</button></div>
+  <p style="font-size:14px; font-weight:700; margin:14px 0 6px;">お名前(ニックネーム可)</p>
+  <input id="student-name" type="text" placeholder="例：やまだ" style="width:100%; border:1.5px solid var(--line); border-radius:10px; padding:12px; font-size:16px; font-family:inherit;" oninput="document.getElementById('start-btn').disabled=!this.value.trim()">
+  <div class="btn-row"><button class="btn" id="start-btn" disabled onclick="startTest()">テストを始める</button></div>
 </div>
 
 <!-- ===== QUIZ (vocab+grammar shared) ===== -->
@@ -200,6 +202,7 @@ function stopTimer(key){
 
 /* ================= クイズ(語彙・文法) ================= */
 function startTest(){
+  S.name=(document.getElementById("student-name").value||"").trim();
   S.phase="vocab"; setProgress();
   S.quizList=VOCAB; S.quizIdx=0;
   startTimer("q-timer");
@@ -398,6 +401,24 @@ function renderResult(){
   </div>`;
   window.RESULT_SUMMARY = buildSummary(v,g,dict,wq,vTotal,gTotal);
   show("view-result");
+  submitResult({
+    name:S.name||"", vocab:vTotal,
+    vA:(v.A?v.A.ok:0), vB:(v.B?v.B.ok:0), vC:(v.C?v.C.ok:0),
+    gram:gTotal, gWeak:(weakG.length?weakG.join("・"):"なし"),
+    dictAcc:dict.acc, dictPerfect:dict.perfectCount,
+    wpm:S.wpm, comp:wq,
+    time:"語彙"+fmt(S.times.vocab||0)+" 文法"+fmt(S.times.grammar||0)+" 聞取"+fmt(S.times.dict||0),
+    rx:rx.map(r=>r.replace(/<[^>]+>/g,"")).join(" / ")
+  });
+}
+/* 結果をスプレッドシートへ自動送信(診断結果シート専用GAS・追記のみ) */
+const GAS_URL="https://script.google.com/macros/s/AKfycbyDe2vEX3fALO3AUy7xkSC4Im7ZLC2KYVYxosIcL-De8JdosxXbjrTzmlegNNDhd37_tQ/exec";
+function submitResult(data){
+  if(!GAS_URL || GAS_URL.indexOf("http")!==0) return;
+  data.token="shindan2026";
+  try{
+    fetch(GAS_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify(data)});
+  }catch(e){}
 }
 function buildSummary(v,g,dict,wq,vTotal,gTotal){
   const lines=["【英語力診断テスト結果】"+new Date().toLocaleDateString("ja-JP"),
