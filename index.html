@@ -7,7 +7,7 @@
 <style>
 :root{
   --bg:#f4f6fb; --card:#ffffff; --ink:#1c2333; --sub:#5b6579;
-  --accent:#2457d6; --accent-soft:#e8eefc; --ok:#188a52; --ng:#c93b3b;
+  --accent:#2457d6; --accent-soft:#e8eefc; --ok:#188a52; --ng:#c93b3b; --warn:#b2700a;
   --line:#e3e7f0; --radius:14px;
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
@@ -29,16 +29,18 @@ header p{color:var(--sub); font-size:13px; margin:4px 0 0;}
 .btn{display:inline-block; border:none; border-radius:10px; background:var(--accent); color:#fff; font-size:15px; font-weight:700; padding:13px 26px; cursor:pointer; font-family:inherit;}
 .btn:disabled{opacity:.35; cursor:default;}
 .btn.ghost{background:#fff; color:var(--accent); border:1.5px solid var(--accent);}
-.btn-row{display:flex; gap:10px; justify-content:flex-end; margin-top:16px;}
+.btn-row{display:flex; gap:10px; justify-content:flex-end; margin-top:16px; flex-wrap:wrap;}
 .note{font-size:12.5px; color:var(--sub); margin-top:10px;}
 .counter{font-size:12.5px; color:var(--sub); text-align:right; margin-bottom:6px;}
 textarea{width:100%; border:1.5px solid var(--line); border-radius:10px; padding:12px; font-size:16px; font-family:inherit; min-height:70px; resize:vertical;}
 textarea:focus{outline:none; border-color:var(--accent);}
+input[type=text]{width:100%; border:1.5px solid var(--line); border-radius:10px; padding:12px; font-size:16px; font-family:inherit;}
 .play-btn{display:flex; align-items:center; gap:10px; border:1.5px solid var(--accent); background:var(--accent-soft); color:var(--accent); border-radius:10px; padding:12px 18px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; margin-bottom:14px;}
 .play-btn:disabled{opacity:.4;}
 .passage{font-size:16px; line-height:1.9; background:#fbfcff; border:1px solid var(--line); border-radius:10px; padding:16px;}
 .big-timer{font-variant-numeric:tabular-nums; font-size:14px; color:var(--sub);}
-/* results */
+.level-badge{display:inline-block; background:var(--accent); color:#fff; font-size:22px; font-weight:800; border-radius:12px; padding:10px 20px; margin:6px 0;}
+.level-sub{font-size:13px; color:var(--sub);}
 .score-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin:12px 0;}
 .score-box{background:#fbfcff; border:1px solid var(--line); border-radius:10px; padding:12px 14px;}
 .score-box .label{font-size:12px; color:var(--sub);}
@@ -46,12 +48,17 @@ textarea:focus{outline:none; border-color:var(--accent);}
 table{width:100%; border-collapse:collapse; font-size:13.5px; margin:8px 0;}
 th,td{padding:7px 8px; border-bottom:1px solid var(--line); text-align:left;}
 th{color:var(--sub); font-weight:600; font-size:12px;}
-td.num{text-align:right; font-variant-numeric:tabular-nums;}
-.b-ok{color:var(--ok); font-weight:700;} .b-ng{color:var(--ng); font-weight:700;}
+td.num{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap;}
+.b-ok{color:var(--ok); font-weight:700;} .b-ng{color:var(--ng); font-weight:700;} .b-skip{color:var(--sub);}
 .diffline{font-size:14px; line-height:2; margin:4px 0;}
 .diffline .w-ok{color:var(--ok);} .diffline .w-ng{color:var(--ng); font-weight:700; text-decoration:underline;}
 .verdict{background:var(--accent-soft); border-radius:10px; padding:14px 16px; font-size:14px; margin-top:12px;}
-.verdict b{color:var(--accent);}
+.plan-block{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; font-size:14px;}
+.plan-block h4{margin:0 0 8px; font-size:14px; color:var(--accent);}
+.plan-block ul{margin:0; padding-left:20px;}
+.plan-block li{margin:5px 0;}
+.plan-block.stop{background:#fdf6f6;}
+.plan-block.stop h4{color:var(--ng);}
 h3.sec{font-size:15px; margin:18px 0 6px; border-left:4px solid var(--accent); padding-left:8px;}
 .hidden{display:none;}
 .center{text-align:center;}
@@ -61,25 +68,26 @@ h3.sec{font-size:15px; margin:18px 0 6px; border-left:4px solid var(--accent); p
 <div class="wrap">
 <header>
   <h1>英語力診断テスト</h1>
-  <p>全4パート・約25分 ｜ 点数ではなく「どこでつまずくか」を調べるテストです</p>
+  <p>約20〜30分 ｜ 点数ではなく「今なにを勉強すべきか」を調べるテストです</p>
 </header>
 <div class="progress"><div id="pbar"></div></div>
 
 <!-- ===== INTRO ===== -->
 <div id="view-intro" class="card">
   <span class="tag">はじめに</span>
-  <p style="font-size:15px; margin:0 0 10px;">このテストは <b>語彙 → 文法 → 聞き取り → 読解スピード</b> の4パートです。</p>
+  <p style="font-size:15px; margin:0 0 10px;">このテストは <b>語彙 → 文法 → 聞き取り → 読解スピード</b> の4パートです。やさしい問題から始まり、だんだん難しくなります。</p>
   <ul style="font-size:14px; color:var(--sub); padding-left:20px; margin:0 0 6px;">
     <li>辞書・検索は使わずに解いてください</li>
     <li>わからない問題は<b>勘で選ばず「わからない」を選んで</b>ください(診断の精度が上がります)</li>
+    <li>難しい問題が続いた場合、あなたのレベルに合わせて<b>後半は自動で省略</b>されます。途中で打ち切られても正常です</li>
     <li>聞き取りパートは音が出ます。音量を確認してください</li>
   </ul>
   <p style="font-size:14px; font-weight:700; margin:14px 0 6px;">お名前(ニックネーム可)</p>
-  <input id="student-name" type="text" placeholder="例：やまだ" style="width:100%; border:1.5px solid var(--line); border-radius:10px; padding:12px; font-size:16px; font-family:inherit;" oninput="document.getElementById('start-btn').disabled=!this.value.trim()">
+  <input id="student-name" type="text" placeholder="例：やまだ" oninput="document.getElementById('start-btn').disabled=!this.value.trim()">
   <div class="btn-row"><button class="btn" id="start-btn" disabled onclick="startTest()">テストを始める</button></div>
 </div>
 
-<!-- ===== QUIZ (vocab+grammar shared) ===== -->
+<!-- ===== QUIZ ===== -->
 <div id="view-quiz" class="hidden">
   <div class="counter"><span id="q-count"></span> ｜ <span class="big-timer" id="q-timer">0:00</span></div>
   <div class="card">
@@ -95,7 +103,7 @@ h3.sec{font-size:15px; margin:18px 0 6px; border-left:4px solid var(--accent); p
   <div class="counter"><span id="d-count"></span> ｜ <span class="big-timer" id="d-timer">0:00</span></div>
   <div class="card">
     <span class="tag">パート3：聞き取り(ディクテーション)</span>
-    <p class="qtext" style="font-weight:400; font-size:14px;">音声を聞いて、聞こえた英文をそのまま入力してください。<b>再生は2回まで</b>。短縮形(I'll など)はそのまま書いてOKです。</p>
+    <p class="qtext" style="font-weight:400; font-size:14px;">音声を聞いて、聞こえた英文をそのまま入力してください。<b>再生は2回まで</b>。短縮形(I'll など)はそのまま書いてOK。全部わからなくても、聞こえた単語だけ書いてください。</p>
     <button class="play-btn" id="d-play" onclick="playDict()">▶ 再生する <span id="d-plays-left">(あと2回)</span></button>
     <textarea id="d-input" placeholder="聞こえた英文を入力" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
     <div class="btn-row"><button class="btn" id="d-next" onclick="nextDict()">次へ</button></div>
@@ -106,7 +114,7 @@ h3.sec{font-size:15px; margin:18px 0 6px; border-left:4px solid var(--accent); p
 <div id="view-wpm-intro" class="hidden">
   <div class="card">
     <span class="tag">パート4：読解スピード</span>
-    <p style="font-size:15px;">次のボタンを押すと<b>約100語の英文</b>が表示されます。<b>普段どおりの速さで1回だけ</b>読み、読み終わったらすぐ「読み終わった」を押してください。そのあと内容についての質問が2問出ます(英文は見られません)。</p>
+    <p style="font-size:15px;">次のボタンを押すと<b>短い英文</b>が表示されます。<b>普段どおりの速さで1回だけ</b>読み、読み終わったらすぐ「読み終わった」を押してください。そのあと内容についての質問が2問出ます(英文は見られません)。</p>
     <div class="btn-row"><button class="btn" onclick="startWpm()">英文を表示する</button></div>
   </div>
 </div>
@@ -126,57 +134,77 @@ h3.sec{font-size:15px; margin:18px 0 6px; border-left:4px solid var(--accent); p
 "use strict";
 /* ================= データ ================= */
 const UNKNOWN = "わからない";
+const SKIP = "__skip__";
 
+/* 語彙：D入門(中学)→A基礎→B中級(700帯)→C上級(860帯) 各3問 */
 const VOCAB = [
+ {band:"D", q:'I usually <u>arrive</u> at school before eight.', opts:["出発する","到着する","走る","勉強する"], ans:1},
+ {band:"D", q:'This bag was <u>cheap</u>, so I bought two.', opts:["高い","重い","安い","新しい"], ans:2},
+ {band:"D", q:'She <u>invited</u> me to her birthday party.', opts:["招待した","断った","忘れた","手伝った"], ans:0},
  {band:"A", q:'The hotel offers <u>complimentary</u> breakfast for all guests.', opts:["豪華な","伝統的な","無料の","任意の"], ans:2},
  {band:"A", q:'Please fill out this form and <u>submit</u> it to the front desk.', opts:["提出する","確認する","保管する","修正する"], ans:0},
  {band:"A", q:'The meeting has been <u>postponed</u> until next Friday.', opts:["中止された","延期された","短縮された","前倒しされた"], ans:1},
  {band:"B", q:'All employees must <u>comply with</u> the new safety regulations.', opts:["revise","announce","evaluate","follow"], ans:3},
  {band:"B", q:'The company will <u>reimburse</u> you for your travel expenses.', opts:["pay back","charge","estimate","reduce"], ans:0},
- {band:"B", q:'The schedule is still <u>tentative</u> and may change.', opts:["strict","detailed","not final","confirmed"], ans:2},
  {band:"B", q:'We need to <u>address</u> the issue of rising costs immediately.', opts:["mention","deal with","ignore","postpone"], ans:1},
  {band:"C", q:'The merger proved to be a <u>lucrative</u> decision for both companies.', opts:["profitable","risky","controversial","temporary"], ans:0},
  {band:"C", q:'She is known for her <u>meticulous</u> attention to detail.', opts:["unnecessary","occasional","modest","extremely careful"], ans:3},
  {band:"C", q:'The committee approved the <u>amendment</u> to the contract.', opts:["cancellation","change","summary","extension"], ans:1},
 ];
+const BAND_ORDER=["D","A","B","C"];
+const BAND_LABEL={D:"入門(中学レベル)",A:"基礎(〜500点帯)",B:"中級(〜700点帯)",C:"上級(〜860点帯)"};
 
+/* 文法：入門4問(基本文・時制の基本)→応用8問 */
 const GRAMMAR = [
+ {type:"基本文", basic:true, q:'My sister ______ a nurse.', opts:["am","is","are","be"], ans:1},
+ {type:"基本文", basic:true, q:'He ______ tennis every Sunday.', opts:["play","plays","playing","is play"], ans:1},
+ {type:"時制の基本", basic:true, q:'I ______ a movie last night.', opts:["watch","watches","watched","watching"], ans:2},
+ {type:"時制の基本", basic:true, q:'Look at those clouds. It ______ rain soon.', opts:["is going to","was","did","has"], ans:0},
  {type:"品詞", q:'The manager praised the team for its ______ completion of the project.', opts:["time","timely","timing","timed"], ans:1},
  {type:"品詞", q:'Applicants must provide proof of ______ to work in Hong Kong.', opts:["eligible","eligibly","eligibility","most eligible"], ans:2},
- {type:"動詞の形", q:'By the time the inspector arrived, the staff ______ the storage area.', opts:["cleaned","have cleaned","had cleaned","cleaning"], ans:2},
- {type:"動詞の形", q:'The new policy requires that every employee ______ a safety course annually.', opts:["completes","completed","complete","completing"], ans:2},
+ {type:"動詞の形(応用)", q:'By the time the inspector arrived, the staff ______ the storage area.', opts:["cleaned","have cleaned","had cleaned","cleaning"], ans:2},
+ {type:"動詞の形(応用)", q:'The new policy requires that every employee ______ a safety course annually.', opts:["completes","completed","complete","completing"], ans:2},
  {type:"前置詞vs接続詞", q:'______ the heavy rain, the outdoor event proceeded as scheduled.', opts:["Although","Despite","However","Even"], ans:1},
  {type:"前置詞vs接続詞", q:'You must sign the agreement ______ you can access the system.', opts:["prior to","during","before","upon"], ans:2},
  {type:"代名詞・関係詞", q:'Employees ______ complete the training by June will receive a certificate.', opts:["whose","which","who","whom"], ans:2},
  {type:"代名詞・関係詞", q:'The client preferred the logo ______ colors were brighter.', opts:["that","whose","which","what"], ans:1},
- {type:"語彙", q:'Please ______ your seat belt whenever the sign is on.', opts:["tie","lock","connect","fasten"], ans:3},
- {type:"語彙", q:'The airline offers a wide ______ of in-flight entertainment options.', opts:["scope","range","field","distance"], ans:1},
 ];
 
+/* 聞き取り：やさしい2問(ゆっくり)→音声変化4問 */
 const DICT = [
+ {id:"d6", easy:true, text:"I get up at seven every day.",            point:"基本文(ゆっくり)"},
+ {id:"d7", easy:true, text:"Can you open the window, please?",        point:"基本文(ゆっくり)"},
  {id:"d1", text:"Why don't you check it out this weekend?",   point:"連結(check it out)"},
  {id:"d2", text:"I'll pick you up at the airport at seven.",  point:"連結(pick you up)・弱形(at)"},
  {id:"d3", text:"He must have left a message for us.",        point:"must have の弱化・弱形(for)"},
- {id:"d4", text:"We should've sent it out a week ago.",       point:"短縮(should've)・連結(sent it out)"},
  {id:"d5", text:"We need to get it done by the end of the day.", point:"連結(get it done)・弱形(to / of)"},
 ];
 
-const PASSAGE = "Thank you for your interest in the City Art Museum's membership program. As a member, you will receive free admission to all regular exhibitions, a ten percent discount at the museum shop, and invitations to members-only events throughout the year. Your membership card will arrive by mail within two weeks of payment. If you need to visit the museum before your card arrives, simply show your confirmation email at the front desk. Please note that special exhibitions may require an additional fee, even for members. We look forward to welcoming you to our community of art lovers.";
-
-const WPM_Q = [
- {q:"会員カードが届く前に入館するには、どうすればいいと書かれていましたか？", opts:["2週間待つ必要がある","追加料金を払う","確認メールをフロントで見せる","美術館に電話する"], ans:2},
- {q:"会員でも追加料金がかかる可能性があるのは何でしたか？", opts:["通常の展示","会員向けイベント","ミュージアムショップ","特別展"], ans:3},
-];
+/* 読解：やさしい/標準 2本をレベルで出し分け */
+const PASSAGE_EASY = {
+ text:"My name is Ken. I work at a small bakery near the station. Every morning, I get up at five and start baking bread at six. My favorite bread is melon bread, and it is very popular. We sell about two hundred melon breads every day. On Sundays, the bakery is closed, so I play soccer with my friends in the park.",
+ label:"やさしい英文",
+ qs:[
+  {q:"ケンの仕事は何でしたか？", opts:["駅員","パン屋","サッカー選手","先生"], ans:1},
+  {q:"日曜日にケンは何をすると書かれていましたか？", opts:["パンを焼く","店で働く","公園でサッカーをする","家で休む"], ans:2},
+ ]};
+const PASSAGE_STD = {
+ text:"Thank you for your interest in the City Art Museum's membership program. As a member, you will receive free admission to all regular exhibitions, a ten percent discount at the museum shop, and invitations to members-only events throughout the year. Your membership card will arrive by mail within two weeks of payment. If you need to visit the museum before your card arrives, simply show your confirmation email at the front desk. Please note that special exhibitions may require an additional fee, even for members. We look forward to welcoming you to our community of art lovers.",
+ label:"標準の英文",
+ qs:[
+  {q:"会員カードが届く前に入館するには、どうすればいいと書かれていましたか？", opts:["2週間待つ必要がある","追加料金を払う","確認メールをフロントで見せる","美術館に電話する"], ans:2},
+  {q:"会員でも追加料金がかかる可能性があるのは何でしたか？", opts:["通常の展示","会員向けイベント","ミュージアムショップ","特別展"], ans:3},
+ ]};
 
 /* ================= 状態 ================= */
 const S = {
-  phase:"intro",          // intro → vocab → grammar → dict → wpm → wpmq → result
+  phase:"intro", name:"",
   quizList:[], quizIdx:0, quizSel:null,
   vocabAns:[], grammarAns:[], wpmAns:[],
+  vocabSkipped:false, grammarSkipped:false, dictSkipped:false,
   dictIdx:0, dictPlays:0, dictAns:[],
-  times:{},               // 所要秒
-  wpm:0, wordCount: PASSAGE.split(/\s+/).length,
-  sectionStart:0, timerHandle:null,
+  passage:null, wpm:0,
+  times:{}, sectionStart:0, timerHandle:null,
 };
 
 function $(id){return document.getElementById(id);}
@@ -199,10 +227,13 @@ function stopTimer(key){
   clearInterval(S.timerHandle);
   S.times[key]=Math.round((Date.now()-S.sectionStart)/1000);
 }
+function countOk(list,ansArr,pred){
+  let ok=0; list.forEach((item,i)=>{ if((!pred||pred(item)) && ansArr[i]===item.ans) ok++; }); return ok;
+}
 
-/* ================= クイズ(語彙・文法) ================= */
+/* ================= クイズ共通 ================= */
 function startTest(){
-  S.name=(document.getElementById("student-name").value||"").trim();
+  S.name=($("student-name").value||"").trim();
   S.phase="vocab"; setProgress();
   S.quizList=VOCAB; S.quizIdx=0;
   startTimer("q-timer");
@@ -215,8 +246,7 @@ function renderQ(){
   $("q-text").innerHTML = item.q;
   S.quizSel=null; $("q-next").disabled=true;
   const box=$("q-opts"); box.innerHTML="";
-  const opts=[...item.opts, UNKNOWN];
-  opts.forEach((o,i)=>{
+  [...item.opts, UNKNOWN].forEach((o,i)=>{
     const b=document.createElement("button");
     b.className="opt"; b.textContent=o;
     b.onclick=()=>{ S.quizSel=(i===item.opts.length? -1 : i);
@@ -227,8 +257,26 @@ function renderQ(){
   $("q-next").textContent=(S.quizIdx===S.quizList.length-1)?"このパートを終える":"次へ";
 }
 function nextQ(){
-  (S.phase==="vocab"?S.vocabAns:S.phase==="grammar"?S.grammarAns:S.wpmAns).push(S.quizSel);
+  const arr=(S.phase==="vocab"?S.vocabAns:S.phase==="grammar"?S.grammarAns:S.wpmAns);
+  arr.push(S.quizSel);
   S.quizIdx++;
+
+  /* --- 適応スキップ判定 --- */
+  if(S.phase==="vocab" && S.quizIdx===6){
+    const okDA=countOk(VOCAB.slice(0,6),S.vocabAns);
+    if(okDA<=2){ // 入門+基礎で2問以下 → 中級・上級は出さない
+      while(S.vocabAns.length<VOCAB.length) S.vocabAns.push(SKIP);
+      S.vocabSkipped=true; S.quizIdx=VOCAB.length;
+    }
+  }
+  if(S.phase==="grammar" && S.quizIdx===4){
+    const okBasic=countOk(GRAMMAR.slice(0,4),S.grammarAns);
+    if(okBasic<=1){ // 入門文法で1問以下 → 応用8問は出さない
+      while(S.grammarAns.length<GRAMMAR.length) S.grammarAns.push(SKIP);
+      S.grammarSkipped=true; S.quizIdx=GRAMMAR.length;
+    }
+  }
+
   if(S.quizIdx<S.quizList.length){ renderQ(); return; }
   if(S.phase==="vocab"){
     stopTimer("vocab");
@@ -266,6 +314,19 @@ function nextDict(){
   S.dictAns.push($("d-input").value.trim());
   audioEl.pause();
   S.dictIdx++;
+  /* やさしい2問の単語一致率が4割未満 → 残りはスキップ */
+  if(S.dictIdx===2){
+    let t=0,h=0;
+    DICT.slice(0,2).forEach((d,k)=>{
+      const target=normWords(d.text), user=normWords(S.dictAns[k]||"");
+      const hit=lcs(target,user);
+      t+=target.length; h+=hit.filter(Boolean).length;
+    });
+    if(t && h/t<0.4){
+      while(S.dictAns.length<DICT.length) S.dictAns.push(SKIP);
+      S.dictSkipped=true; S.dictIdx=DICT.length;
+    }
+  }
   if(S.dictIdx<DICT.length){ renderDict(); return; }
   stopTimer("dict");
   S.phase="wpm"; setProgress(); show("view-wpm-intro");
@@ -273,19 +334,23 @@ function nextDict(){
 
 /* ================= WPM ================= */
 function startWpm(){
-  $("w-passage").textContent=PASSAGE;
+  /* ここまでの成績で英文を出し分け */
+  const okDA=countOk(VOCAB.slice(0,6),S.vocabAns);
+  const okBasic=countOk(GRAMMAR.slice(0,4),S.grammarAns);
+  S.passage=(okDA<=3 || okBasic<=2) ? PASSAGE_EASY : PASSAGE_STD;
+  $("w-passage").textContent=S.passage.text;
   show("view-wpm-read");
   startTimer("w-timer");
 }
 function endWpm(){
   const sec=(Date.now()-S.sectionStart)/1000;
   stopTimer("wpmRead");
-  S.wpm=Math.round(S.wordCount/(sec/60));
+  const wc=S.passage.text.split(/\s+/).length;
+  S.wpm=Math.round(wc/(sec/60));
   S.phase="wpmq"; setProgress();
-  S.quizList=WPM_Q; S.quizIdx=0; S.wpmAns=[];
+  S.quizList=S.passage.qs; S.quizIdx=0; S.wpmAns=[];
   startTimer("q-timer");
-  show("view-quiz");
-  renderQ();
+  show("view-quiz"); renderQ();
 }
 
 /* ================= 採点 ================= */
@@ -297,7 +362,7 @@ function normWords(s){
   return s.toLowerCase().replace(/[’‘]/g,"'").replace(/[^a-z0-9' ]/g," ").split(/\s+/).filter(Boolean)
     .flatMap(w=>(CONTRACTIONS[w]||w).split(" "));
 }
-function lcs(a,b){ // 単語配列のLCS → aの各語が一致したか
+function lcs(a,b){
   const m=a.length,n=b.length;
   const dp=Array.from({length:m+1},()=>new Array(n+1).fill(0));
   for(let i=m-1;i>=0;i--)for(let j=n-1;j>=0;j--)
@@ -308,73 +373,124 @@ function lcs(a,b){ // 単語配列のLCS → aの各語が一致したか
   return hit;
 }
 function gradeDict(){
-  let totalW=0, hitW=0;
-  const rows=DICT.map((d,k)=>{
+  let totalW=0, hitW=0, easyT=0, easyH=0;
+  const rows=[];
+  DICT.forEach((d,k)=>{
+    if(S.dictAns[k]===SKIP){ rows.push({d, skipped:true}); return; }
     const target=normWords(d.text), user=normWords(S.dictAns[k]||"");
     const hit=lcs(target,user);
     totalW+=target.length; hitW+=hit.filter(Boolean).length;
-    return {d, hit, target, perfect:hit.every(Boolean)&&user.length===target.length};
+    if(d.easy){ easyT+=target.length; easyH+=hit.filter(Boolean).length; }
+    rows.push({d, hit, target, perfect:hit.every(Boolean)&&user.length===target.length});
   });
-  return {rows, acc: totalW? Math.round(hitW/totalW*100):0, perfectCount: rows.filter(r=>r.perfect).length};
+  return {rows,
+    acc: totalW? Math.round(hitW/totalW*100):0,
+    easyAcc: easyT? Math.round(easyH/easyT*100):0,
+    perfectCount: rows.filter(r=>r.perfect).length,
+    answered: rows.filter(r=>!r.skipped).length};
 }
-function tally(list,ansArr,keyFn){
+function bandScores(){
+  const r={};
+  BAND_ORDER.forEach(b=>{
+    const idx=VOCAB.map((v,i)=>v.band===b?i:-1).filter(i=>i>=0);
+    const skipped=idx.every(i=>S.vocabAns[i]===SKIP);
+    r[b]={ok:idx.filter(i=>S.vocabAns[i]===VOCAB[i].ans).length, total:idx.length, skipped};
+  });
+  return r;
+}
+function grammarTypes(){
   const g={};
-  list.forEach((item,i)=>{
-    const k=keyFn(item);
-    g[k]=g[k]||{ok:0,total:0};
-    g[k].total++;
-    if(ansArr[i]===item.ans) g[k].ok++;
+  GRAMMAR.forEach((item,i)=>{
+    g[item.type]=g[item.type]||{ok:0,total:0,skipped:true};
+    g[item.type].total++;
+    if(S.grammarAns[i]!==SKIP) g[item.type].skipped=false;
+    if(S.grammarAns[i]===item.ans) g[item.type].ok++;
   });
   return g;
 }
 
-/* ================= 結果 ================= */
-function wpmVerdict(w){
-  if(w<80)  return ["ゆっくり","返り読みの癖がある可能性大。精読＋音読から。"];
-  if(w<110) return ["基礎レベル","内容は追えるが、TOEICでは時間切れになる速さ。"];
-  if(w<150) return ["標準","Part7をほぼ完走できるライン。精度を上げる段階。"];
-  return ["速い","速度は十分。設問処理と精度に集中してOK。"];
+/* ================= レベル判定と学習プラン ================= */
+function decideLevel(v,g,dict,wq){
+  const basicG=countOk(GRAMMAR.slice(0,4),S.grammarAns);
+  if(v.D.ok<=1 || basicG<=1) return 1;
+  if(v.A.ok<=1 || (dict.easyAcc<50)) return 2;
+  if(v.B.skipped || v.B.ok<=1 || dict.acc<70 || S.wpm<110) return 3;
+  if(v.C.ok<=1 || dict.perfectCount<4 || S.wpm<150 || wq<2) return 4;
+  return 5;
 }
-function bandLabel(b){return b==="A"?"基礎(〜500点帯)":b==="B"?"中級(〜700点帯)":"上級(〜860点帯)";}
+const LEVELS={
+ 1:{name:"レベル1：入門", toeic:"TOEIC目安：〜300点", desc:"中学英語の土台から積み直す段階です。ここを飛ばすと何をやっても伸びないので、むしろ一番伸びしろがある状態です。",
+   d30:["<b>中学英文法のやり直し</b>を最優先。薄い中学文法の参考書を1日30分、順番どおりに(be動詞→一般動詞→過去形→未来→助動詞)。1ヶ月で前半を終える","<b>中学レベルの単語</b>を1日20〜30個。書けなくてOK、「見て意味が言える」だけを基準に何周も回す","このテストの聞き取りで出た文(I get up at seven...)のような<b>短い基本文の音読</b>を1日5分"],
+   d90:["中学文法の後半(比較・不定詞・動名詞・受動態)を終えて<b>2周目</b>へ","単語を続けつつ、<b>ごく短い英文(3〜4行)を毎日1つ読む</b>習慣をつける","90日後にもう一度この診断を受けて、レベル2になっているか確認"],
+   stop:["TOEICの模試・問題集(今は1問も解かなくていい)","洋画・ポッドキャストの聞き流し(今は雑音にしかならない)","難しい単語帳(金フレ等)"]},
+ 2:{name:"レベル2：初級", toeic:"TOEIC目安：300〜450点", desc:"中学英語はおおむね入っています。次は「基礎単語の量」と「音の基礎」が伸びのカギです。",
+   d30:["<b>基礎単語帳(銀フレなど)を1日100個ペース</b>で高速で回す。1個3秒・意味が言えるかだけ。1ヶ月で1周半が目標","文法はこのテストで間違えた単元だけ、<b>中学文法の該当章をピンポイント復習</b>","<b>やさしい英文の音読を1日10分</b>。スラスラ読める文を増やす"],
+   d90:["基礎単語帳を3周以上して9割定着","<b>音声のルール(音の連結・弱形)の学習を開始</b>し、1日3文のディクテーション","短い英文を時間を測って読み、読解スピードの土台を作る"],
+   stop:["2時間の模試通し(まだ体力の無駄)","上級単語帳","速読の練習(まず正確に読めるのが先)"]},
+ 3:{name:"レベル3：初中級", toeic:"TOEIC目安：450〜600点", desc:"基礎はできています。ここからは「弱点タイプを名指しで潰す」のが最短ルートです。下の文法タイプ表で「穴あり」になった所があなたの伸びポイントです。",
+   d30:["<b>文法は「穴あり」のタイプだけ</b>を週1タイプずつ集中して潰す(全部やり直す必要はない)","<b>700点帯の単語(金フレ等)</b>を1日50個ペースで開始","<b>音声変化のルール学習＋ディクテーション1日3文</b>。聞き取りの赤字(消えた音)がそのまま教材"],
+   d90:["精読→音読のセットで<b>WPM 130</b>を目標に","Part5形式の問題をタイプ別に演習(間違えたら必ず「どのタイプか」を言語化)","リスニングは1.0倍速で「全単語聞こえる」状態を作ってから量を増やす"],
+   stop:["やみくもな模試の乱れ打ち(弱点が潰れてから)","860点帯の単語"]},
+ 4:{name:"レベル4：中級", toeic:"TOEIC目安：600〜750点", desc:"主要な土台は完成しています。あとは「上級語彙」「音の細部」「スピード」の3点を仕上げる段階です。",
+   d30:["<b>860点帯の語彙</b>を毎日継続","聞き取りで落とした音声変化(赤字の単語)を<b>シャドーイングで口に入れる</b>","長文は<b>時間を測って</b>読む習慣に切り替え(WPM150目標)"],
+   d90:["公式問題集を2週間に1回、時間配分の練習として使う","誤答は「語彙/文法タイプ/音/速度」のどれで落としたか必ず分類する","このテストで満点でなかったパートを重点に"],
+   stop:["基礎のやり直し(もう不要。前に進む)"]},
+ 5:{name:"レベル5：中上級", toeic:"TOEIC目安：750点〜", desc:"この診断で測れる範囲に大きな穴はありません。実戦演習と精度管理のフェーズです。",
+   d30:["公式問題集を本番形式で解き、<b>誤答分析</b>(なぜ落としたか)を中心に","語彙は維持ペースでOK。新規より復習"],
+   d90:["時間配分の最適化(Part5は1問20秒、Part7は1問1分が目安)","スピーキング・ライティングなど次の技能へ投資を始めても良い段階"],
+   stop:["基礎教材への後戻り"]},
+};
+
+/* ================= 結果 ================= */
 function renderResult(){
-  const v=tally(VOCAB,S.vocabAns,x=>x.band);
-  const g=tally(GRAMMAR,S.grammarAns,x=>x.type);
+  const v=bandScores();
+  const g=grammarTypes();
   const dict=gradeDict();
-  const wq=WPM_Q.filter((x,i)=>S.wpmAns[i]===x.ans).length;
-  const [wLabel,wComment]=wpmVerdict(S.wpm);
-  const vTotal=VOCAB.filter((x,i)=>S.vocabAns[i]===x.ans).length;
-  const gTotal=GRAMMAR.filter((x,i)=>S.grammarAns[i]===x.ans).length;
+  const wq=S.passage.qs.filter((x,i)=>S.wpmAns[i]===x.ans).length;
+  const vTotal=countOk(VOCAB,S.vocabAns);
+  const gTotal=countOk(GRAMMAR,S.grammarAns);
+  const level=decideLevel(v,g,dict,wq);
+  const L=LEVELS[level];
+  const weakG=Object.entries(g).filter(([k,s])=>!s.skipped&&s.ok<s.total).map(([k])=>k);
 
-  // 弱点判定(優先度順の処方)
-  const rx=[];
-  if(dict.acc<70) rx.push("<b>音の処理(連結・弱形)が最優先。</b>知っている単語が聞き取れていません。音声変化のルール学習＋ディクテーションから始めるのが近道です。");
-  const weakG=Object.entries(g).filter(([k,s])=>s.ok<s.total).map(([k])=>k);
-  if(weakG.length) rx.push("文法は <b>"+weakG.join("・")+"</b> に穴があります。ここをタイプ別に潰すとPart5の正答率が一気に上がります。");
-  if((v.A&&v.A.ok<v.A.total)) rx.push("<b>基礎語彙に抜けがあります。</b>難しい単語帳より先に、基礎帯の単語を固めてください。");
-  else if(v.B&&v.B.ok<v.B.total-1) rx.push("語彙は<b>700点帯で失速</b>しています。金フレ700レベルの反復が効きます。");
-  if(S.wpm<110) rx.push("読解スピード(WPM "+S.wpm+")は<b>要強化</b>。"+wComment);
-  if(!rx.length) rx.push("大きな穴はありません。上級語彙と速読の精度を上げる段階です。");
+  /* 弱点による優先メモ */
+  let prio="";
+  if(!dict.answered){}
+  else if(dict.acc<60 && level>=2) prio="聞き取りの落ち方が大きいので、プランの中では<b>音(ディクテーション・音声のルール)を最優先</b>にしてください。";
+  else if(weakG.length>=2 && level>=3) prio="文法の穴("+weakG.join("・")+")が複数あるので、プランの中では<b>文法のタイプ潰しを最優先</b>にしてください。";
+  else if(S.wpm<110 && level>=3) prio="読むスピードがボトルネックです。プランの中では<b>精読＋音読を最優先</b>にしてください。";
 
-  const bandRow=(["A","B","C"]).map(b=>{
-    const s=v[b]||{ok:0,total:0};
-    return "<tr><td>"+bandLabel(b)+"</td><td class='num'>"+s.ok+" / "+s.total+"</td><td>"+(s.ok===s.total?"<span class='b-ok'>安定</span>":s.ok===0?"<span class='b-ng'>未習得</span>":"<span class='b-ng'>不安定</span>")+"</td></tr>";
+  const bandRow=BAND_ORDER.map(b=>{
+    const s=v[b];
+    const judge=s.skipped?"<span class='b-skip'>未測定(今は不要)</span>":s.ok===s.total?"<span class='b-ok'>安定</span>":s.ok<=1?"<span class='b-ng'>未習得</span>":"<span class='b-ng'>不安定</span>";
+    return "<tr><td>"+BAND_LABEL[b]+"</td><td class='num'>"+(s.skipped?"—":s.ok+" / "+s.total)+"</td><td>"+judge+"</td></tr>";
   }).join("");
-  const gRow=Object.entries(g).map(([k,s])=>
-    "<tr><td>"+k+"</td><td class='num'>"+s.ok+" / "+s.total+"</td><td>"+(s.ok===s.total?"<span class='b-ok'>OK</span>":"<span class='b-ng'>穴あり</span>")+"</td></tr>").join("");
+  const gRow=Object.entries(g).map(([k,s])=>{
+    const judge=s.skipped?"<span class='b-skip'>未測定(今は不要)</span>":s.ok===s.total?"<span class='b-ok'>OK</span>":"<span class='b-ng'>穴あり</span>";
+    return "<tr><td>"+k+"</td><td class='num'>"+(s.skipped?"—":s.ok+" / "+s.total)+"</td><td>"+judge+"</td></tr>";}).join("");
   const dictRows=dict.rows.map((r,i)=>{
+    if(r.skipped) return "";
     const words=r.target.map((w,k)=>"<span class='"+(r.hit[k]?"w-ok":"w-ng")+"'>"+w+"</span>").join(" ");
     return "<div class='diffline'>Q"+(i+1)+"："+words+" <span style='color:var(--sub);font-size:12px;'>…"+r.d.point+"</span></div>";
   }).join("");
+  const li=a=>a.map(x=>"<li>"+x+"</li>").join("");
 
   $("view-result").innerHTML=`
   <div class="card">
-    <span class="tag">診断結果：弱点マップ</span>
+    <span class="tag">診断結果</span>
+    <div class="center" style="margin:6px 0 14px;">
+      <div class="level-badge">${L.name}</div>
+      <div class="level-sub">${L.toeic}</div>
+    </div>
+    <p style="font-size:14.5px;">${S.name?S.name+"さん、":""}${L.desc}</p>
+
     <div class="score-grid">
-      <div class="score-box"><div class="label">語彙</div><div class="val">${vTotal} <small>/10</small></div></div>
-      <div class="score-box"><div class="label">文法</div><div class="val">${gTotal} <small>/10</small></div></div>
+      <div class="score-box"><div class="label">語彙</div><div class="val">${vTotal} <small>/${VOCAB.length-(S.vocabSkipped?6:0)}</small></div></div>
+      <div class="score-box"><div class="label">文法</div><div class="val">${gTotal} <small>/${GRAMMAR.length-(S.grammarSkipped?8:0)}</small></div></div>
       <div class="score-box"><div class="label">聞き取り(単語一致率)</div><div class="val">${dict.acc}<small>%</small></div></div>
       <div class="score-box"><div class="label">読解スピード</div><div class="val">${S.wpm} <small>WPM</small></div></div>
     </div>
+    <p class="note">「未測定」は飛ばされた問題です。今のあなたに必要な範囲だけで正確に診断しています。</p>
 
     <h3 class="sec">語彙：どの帯まで安定しているか</h3>
     <table><tr><th>レベル帯</th><th>正答</th><th>判定</th></tr>${bandRow}</table>
@@ -383,15 +499,19 @@ function renderResult(){
     <table><tr><th>出題タイプ</th><th>正答</th><th>判定</th></tr>${gRow}</table>
 
     <h3 class="sec">聞き取り：落とした単語(赤)</h3>
-    ${dictRows}
-    <p class="note">完全一致 ${dict.perfectCount}/5 文。赤字は「書き取れなかった単語」＝音声変化で消えた音です。</p>
+    ${dictRows||"<p class='note'>基本文の聞き取りから練習する段階のため、後半は省略しました。</p>"}
+    <p class="note">赤字は「書き取れなかった単語」。知らない単語ではなく<b>音がつながって消えた単語</b>が多いはずです。</p>
 
     <h3 class="sec">読解スピード</h3>
-    <p style="font-size:14px; margin:4px 0;">${S.wpm} WPM(${wLabel})・内容理解 ${wq}/2 ${wq<2?"<span class='b-ng'>※速くても理解が伴っていない可能性</span>":""}</p>
-    <p class="note">${wComment} 目安：TOEIC完走ライン ≈ 150WPM</p>
+    <p style="font-size:14px; margin:4px 0;">${S.wpm} WPM(${S.passage.label}) ・ 内容理解 ${wq}/2 ${wq<2?"<span class='b-ng'>※速さより理解を優先してください</span>":""}</p>
+    <p class="note">目安：TOEIC完走ライン ≈ 150WPM／ゆっくり確実 ≈ 100WPM</p>
 
-    <h3 class="sec">今やるべきこと(優先順)</h3>
-    <div class="verdict">${rx.map((r,i)=>"<p style='margin:4px 0;'>"+(i+1)+". "+r+"</p>").join("")}</div>
+    <h3 class="sec">あなたの学習プラン</h3>
+    ${prio?`<div class="verdict">⚠ ${prio}</div>`:""}
+    <div class="plan-block"><h4>📅 最初の30日でやること</h4><ul>${li(L.d30)}</ul></div>
+    <div class="plan-block"><h4>📅 31〜90日でやること</h4><ul>${li(L.d90)}</ul></div>
+    <div class="plan-block stop"><h4>🚫 今はやらなくていいこと</h4><ul>${li(L.stop)}</ul></div>
+    <p class="note">プランの進め方や教材選びに迷ったら、この結果画面をコーチにそのまま送って相談してください。</p>
 
     <div class="btn-row" style="justify-content:center; margin-top:20px;">
       <button class="btn ghost" onclick="copyResult()">結果をコピー(コーチ送信用)</button>
@@ -399,17 +519,36 @@ function renderResult(){
     </div>
     <p class="note center" id="copy-done" style="color:var(--ok); visibility:hidden;">コピーしました。LINEに貼り付けて送ってください。</p>
   </div>`;
-  window.RESULT_SUMMARY = buildSummary(v,g,dict,wq,vTotal,gTotal);
   show("view-result");
-  submitResult({
-    name:S.name||"", vocab:vTotal,
-    vA:(v.A?v.A.ok:0), vB:(v.B?v.B.ok:0), vC:(v.C?v.C.ok:0),
-    gram:gTotal, gWeak:(weakG.length?weakG.join("・"):"なし"),
-    dictAcc:dict.acc, dictPerfect:dict.perfectCount,
+
+  const summary=buildSummary(level,L,v,g,dict,wq,vTotal,gTotal,weakG);
+  window.RESULT_SUMMARY=summary.text;
+  submitResult(summary.row);
+}
+function bandCell(s){return s.skipped?"-":String(s.ok);}
+function buildSummary(level,L,v,g,dict,wq,vTotal,gTotal,weakG){
+  const gLines=Object.entries(g).map(([k,s])=>"　・"+k+" "+(s.skipped?"未測定":s.ok+"/"+s.total));
+  const text=["【英語力診断テスト結果】"+new Date().toLocaleDateString("ja-JP"),
+   (S.name?"名前："+S.name:""),
+   "判定："+L.name+"("+L.toeic+")",
+   "■語彙 "+vTotal+"点（入門"+bandCell(v.D)+"/3・基礎"+bandCell(v.A)+"/3・700帯"+bandCell(v.B)+"/3・860帯"+bandCell(v.C)+"/3）",
+   "■文法 "+gTotal+"点",...gLines,
+   "■聞き取り 単語一致率"+dict.acc+"%（完全一致"+dict.perfectCount+"/"+dict.answered+"文）",
+   "■読解 "+S.wpm+"WPM("+S.passage.label+")・内容理解"+wq+"/2",
+   "■所要時間 語彙"+fmt(S.times.vocab||0)+" 文法"+fmt(S.times.grammar||0)+" 聞き取り"+fmt(S.times.dict||0)].filter(Boolean).join("\n");
+  const row={name:S.name, level:L.name.replace("：","｜"), vocab:vTotal,
+    vD:bandCell(v.D), vA:bandCell(v.A), vB:bandCell(v.B), vC:bandCell(v.C),
+    gram:gTotal, gWeak:(weakG.length?weakG.join("・"):(S.grammarSkipped?"入門で要強化":"なし")),
+    dictAcc:dict.acc, dictPerfect:dict.perfectCount+"/"+dict.answered,
     wpm:S.wpm, comp:wq,
     time:"語彙"+fmt(S.times.vocab||0)+" 文法"+fmt(S.times.grammar||0)+" 聞取"+fmt(S.times.dict||0),
-    rx:rx.map(r=>r.replace(/<[^>]+>/g,"")).join(" / ")
-  });
+    rx:L.d30.map(x=>x.replace(/<[^>]+>/g,"")).join(" / ")};
+  return {text,row};
+}
+function copyResult(){
+  navigator.clipboard.writeText(window.RESULT_SUMMARY||"").then(()=>{
+    $("copy-done").style.visibility="visible";
+  }).catch(()=>{ prompt("コピーできない場合は手動で:", window.RESULT_SUMMARY); });
 }
 /* 結果をスプレッドシートへ自動送信(診断結果シート専用GAS・追記のみ) */
 const GAS_URL="https://script.google.com/macros/s/AKfycbyDe2vEX3fALO3AUy7xkSC4Im7ZLC2KYVYxosIcL-De8JdosxXbjrTzmlegNNDhd37_tQ/exec";
@@ -419,21 +558,6 @@ function submitResult(data){
   try{
     fetch(GAS_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify(data)});
   }catch(e){}
-}
-function buildSummary(v,g,dict,wq,vTotal,gTotal){
-  const lines=["【英語力診断テスト結果】"+new Date().toLocaleDateString("ja-JP"),
-   "■語彙 "+vTotal+"/10（基礎"+(v.A?v.A.ok:0)+"/3・700帯"+(v.B?v.B.ok:0)+"/4・860帯"+(v.C?v.C.ok:0)+"/3）",
-   "■文法 "+gTotal+"/10",
-   ...Object.entries(g).map(([k,s])=>"　・"+k+" "+s.ok+"/"+s.total),
-   "■聞き取り 単語一致率"+dict.acc+"%（完全一致"+dict.perfectCount+"/5文）",
-   "■読解 "+S.wpm+"WPM・内容理解"+wq+"/2",
-   "■所要時間 語彙"+fmt(S.times.vocab||0)+" 文法"+fmt(S.times.grammar||0)+" 聞き取り"+fmt(S.times.dict||0)];
-  return lines.join("\n");
-}
-function copyResult(){
-  navigator.clipboard.writeText(window.RESULT_SUMMARY||"").then(()=>{
-    $("copy-done").style.visibility="visible";
-  }).catch(()=>{ prompt("コピーできない場合は手動で:", window.RESULT_SUMMARY); });
 }
 setProgress();
 </script>
