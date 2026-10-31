@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>英語力診断テスト</title>
+<style>
+:root{
+  --bg:#f4f6fb; --card:#ffffff; --ink:#1c2333; --sub:#5b6579;
+  --accent:#2457d6; --accent-soft:#e8eefc; --ok:#188a52; --ng:#c93b3b;
+  --line:#e3e7f0; --radius:14px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+body{margin:0; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif; background:var(--bg); color:var(--ink); line-height:1.65;}
+.wrap{max-width:640px; margin:0 auto; padding:16px 16px 60px;}
+header{padding:18px 0 6px;}
+header h1{font-size:20px; margin:0;}
+header p{color:var(--sub); font-size:13px; margin:4px 0 0;}
+.progress{height:6px; background:var(--line); border-radius:3px; margin:14px 0 18px; overflow:hidden;}
+.progress>div{height:100%; background:var(--accent); width:0%; transition:width .3s;}
+.card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:20px; margin-bottom:14px; box-shadow:0 1px 3px rgba(20,30,60,.05);}
+.tag{display:inline-block; font-size:11px; font-weight:700; color:var(--accent); background:var(--accent-soft); border-radius:20px; padding:3px 10px; margin-bottom:10px;}
+.qtext{font-size:16px; margin:0 0 14px; font-weight:600;}
+.qtext u{text-decoration:none; border-bottom:2px solid var(--accent); font-weight:700;}
+.opts{display:flex; flex-direction:column; gap:8px;}
+.opt{border:1.5px solid var(--line); border-radius:10px; padding:12px 14px; font-size:15px; cursor:pointer; background:#fff; text-align:left; width:100%; font-family:inherit; transition:border-color .15s, background .15s;}
+.opt:active{background:var(--accent-soft);}
+.opt.sel{border-color:var(--accent); background:var(--accent-soft); font-weight:600;}
+.btn{display:inline-block; border:none; border-radius:10px; background:var(--accent); color:#fff; font-size:15px; font-weight:700; padding:13px 26px; cursor:pointer; font-family:inherit;}
+.btn:disabled{opacity:.35; cursor:default;}
+.btn.ghost{background:#fff; color:var(--accent); border:1.5px solid var(--accent);}
+.btn-row{display:flex; gap:10px; justify-content:flex-end; margin-top:16px;}
+.note{font-size:12.5px; color:var(--sub); margin-top:10px;}
+.counter{font-size:12.5px; color:var(--sub); text-align:right; margin-bottom:6px;}
+textarea{width:100%; border:1.5px solid var(--line); border-radius:10px; padding:12px; font-size:16px; font-family:inherit; min-height:70px; resize:vertical;}
+textarea:focus{outline:none; border-color:var(--accent);}
+.play-btn{display:flex; align-items:center; gap:10px; border:1.5px solid var(--accent); background:var(--accent-soft); color:var(--accent); border-radius:10px; padding:12px 18px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; margin-bottom:14px;}
+.play-btn:disabled{opacity:.4;}
+.passage{font-size:16px; line-height:1.9; background:#fbfcff; border:1px solid var(--line); border-radius:10px; padding:16px;}
+.big-timer{font-variant-numeric:tabular-nums; font-size:14px; color:var(--sub);}
+/* results */
+.score-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin:12px 0;}
+.score-box{background:#fbfcff; border:1px solid var(--line); border-radius:10px; padding:12px 14px;}
+.score-box .label{font-size:12px; color:var(--sub);}
+.score-box .val{font-size:22px; font-weight:800;}
+table{width:100%; border-collapse:collapse; font-size:13.5px; margin:8px 0;}
+th,td{padding:7px 8px; border-bottom:1px solid var(--line); text-align:left;}
+th{color:var(--sub); font-weight:600; font-size:12px;}
+td.num{text-align:right; font-variant-numeric:tabular-nums;}
+.b-ok{color:var(--ok); font-weight:700;} .b-ng{color:var(--ng); font-weight:700;}
+.diffline{font-size:14px; line-height:2; margin:4px 0;}
+.diffline .w-ok{color:var(--ok);} .diffline .w-ng{color:var(--ng); font-weight:700; text-decoration:underline;}
+.verdict{background:var(--accent-soft); border-radius:10px; padding:14px 16px; font-size:14px; margin-top:12px;}
+.verdict b{color:var(--accent);}
+h3.sec{font-size:15px; margin:18px 0 6px; border-left:4px solid var(--accent); padding-left:8px;}
+.hidden{display:none;}
+.center{text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>英語力診断テスト</h1>
+  <p>全4パート・約25分 ｜ 点数ではなく「どこでつまずくか」を調べるテストです</p>
+</header>
+<div class="progress"><div id="pbar"></div></div>
+
+<!-- ===== INTRO ===== -->
+<div id="view-intro" class="card">
+  <span class="tag">はじめに</span>
+  <p style="font-size:15px; margin:0 0 10px;">このテストは <b>語彙 → 文法 → 聞き取り → 読解スピード</b> の4パートです。</p>
+  <ul style="font-size:14px; color:var(--sub); padding-left:20px; margin:0 0 6px;">
+    <li>辞書・検索は使わずに解いてください</li>
+    <li>わからない問題は<b>勘で選ばず「わからない」を選んで</b>ください(診断の精度が上がります)</li>
+    <li>聞き取りパートは音が出ます。音量を確認してください</li>
+  </ul>
+  <div class="btn-row"><button class="btn" onclick="startTest()">テストを始める</button></div>
+</div>
+
+<!-- ===== QUIZ (vocab+grammar shared) ===== -->
+<div id="view-quiz" class="hidden">
+  <div class="counter"><span id="q-count"></span> ｜ <span class="big-timer" id="q-timer">0:00</span></div>
+  <div class="card">
+    <span class="tag" id="q-tag"></span>
+    <p class="qtext" id="q-text"></p>
+    <div class="opts" id="q-opts"></div>
+    <div class="btn-row"><button class="btn" id="q-next" disabled onclick="nextQ()">次へ</button></div>
+  </div>
+</div>
+
+<!-- ===== DICTATION ===== -->
+<div id="view-dict" class="hidden">
+  <div class="counter"><span id="d-count"></span> ｜ <span class="big-timer" id="d-timer">0:00</span></div>
+  <div class="card">
+    <span class="tag">パート3：聞き取り(ディクテーション)</span>
+    <p class="qtext" style="font-weight:400; font-size:14px;">音声を聞いて、聞こえた英文をそのまま入力してください。<b>再生は2回まで</b>。短縮形(I'll など)はそのまま書いてOKです。</p>
+    <button class="play-btn" id="d-play" onclick="playDict()">▶ 再生する <span id="d-plays-left">(あと2回)</span></button>
+    <textarea id="d-input" placeholder="聞こえた英文を入力" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
+    <div class="btn-row"><button class="btn" id="d-next" onclick="nextDict()">次へ</button></div>
+  </div>
+</div>
+
+<!-- ===== WPM ===== -->
+<div id="view-wpm-intro" class="hidden">
+  <div class="card">
+    <span class="tag">パート4：読解スピード</span>
+    <p style="font-size:15px;">次のボタンを押すと<b>約100語の英文</b>が表示されます。<b>普段どおりの速さで1回だけ</b>読み、読み終わったらすぐ「読み終わった」を押してください。そのあと内容についての質問が2問出ます(英文は見られません)。</p>
+    <div class="btn-row"><button class="btn" onclick="startWpm()">英文を表示する</button></div>
+  </div>
+</div>
+<div id="view-wpm-read" class="hidden">
+  <div class="counter">読み終わったらすぐボタンを押す ｜ <span class="big-timer" id="w-timer">0:00</span></div>
+  <div class="card">
+    <div class="passage" id="w-passage"></div>
+    <div class="btn-row"><button class="btn" onclick="endWpm()">読み終わった</button></div>
+  </div>
+</div>
+
+<!-- ===== RESULTS ===== -->
+<div id="view-result" class="hidden"></div>
+
+</div>
+<script>
+"use strict";
+/* ================= データ ================= */
+const UNKNOWN = "わからない";
+
+const VOCAB = [
+ {band:"A", q:'The hotel offers <u>complimentary</u> breakfast for all guests.', opts:["豪華な","伝統的な","無料の","任意の"], ans:2},
+ {band:"A", q:'Please fill out this form and <u>submit</u> it to the front desk.', opts:["提出する","確認する","保管する","修正する"], ans:0},
+ {band:"A", q:'The meeting has been <u>postponed</u> until next Friday.', opts:["中止された","延期された","短縮された","前倒しされた"], ans:1},
+ {band:"B", q:'All employees must <u>comply with</u> the new safety regulations.', opts:["revise","announce","evaluate","follow"], ans:3},
+ {band:"B", q:'The company will <u>reimburse</u> you for your travel expenses.', opts:["pay back","charge","estimate","reduce"], ans:0},
+ {band:"B", q:'The schedule is still <u>tentative</u> and may change.', opts:["strict","detailed","not final","confirmed"], ans:2},
+ {band:"B", q:'We need to <u>address</u> the issue of rising costs immediately.', opts:["mention","deal with","ignore","postpone"], ans:1},
+ {band:"C", q:'The merger proved to be a <u>lucrative</u> decision for both companies.', opts:["profitable","risky","controversial","temporary"], ans:0},
+ {band:"C", q:'She is known for her <u>meticulous</u> attention to detail.', opts:["unnecessary","occasional","modest","extremely careful"], ans:3},
+ {band:"C", q:'The committee approved the <u>amendment</u> to the contract.', opts:["cancellation","change","summary","extension"], ans:1},
+];
+
+const GRAMMAR = [
+ {type:"品詞", q:'The manager praised the team for its ______ completion of the project.', opts:["time","timely","timing","timed"], ans:1},
+ {type:"品詞", q:'Applicants must provide proof of ______ to work in Hong Kong.', opts:["eligible","eligibly","eligibility","most eligible"], ans:2},
+ {type:"動詞の形", q:'By the time the inspector arrived, the staff ______ the storage area.', opts:["cleaned","have cleaned","had cleaned","cleaning"], ans:2},
+ {type:"動詞の形", q:'The new policy requires that every employee ______ a safety course annually.', opts:["completes","completed","complete","completing"], ans:2},
+ {type:"前置詞vs接続詞", q:'______ the heavy rain, the outdoor event proceeded as scheduled.', opts:["Although","Despite","However","Even"], ans:1},
+ {type:"前置詞vs接続詞", q:'You must sign the agreement ______ you can access the system.', opts:["prior to","during","before","upon"], ans:2},
+ {type:"代名詞・関係詞", q:'Employees ______ complete the training by June will receive a certificate.', opts:["whose","which","who","whom"], ans:2},
+ {type:"代名詞・関係詞", q:'The client preferred the logo ______ colors were brighter.', opts:["that","whose","which","what"], ans:1},
+ {type:"語彙", q:'Please ______ your seat belt whenever the sign is on.', opts:["tie","lock","connect","fasten"], ans:3},
+ {type:"語彙", q:'The airline offers a wide ______ of in-flight entertainment options.', opts:["scope","range","field","distance"], ans:1},
+];
+
+const DICT = [
+ {id:"d1", text:"Why don't you check it out this weekend?",   point:"連結(check it out)"},
+ {id:"d2", text:"I'll pick you up at the airport at seven.",  point:"連結(pick you up)・弱形(at)"},
+ {id:"d3", text:"He must have left a message for us.",        point:"must have の弱化・弱形(for)"},
+ {id:"d4", text:"We should've sent it out a week ago.",       point:"短縮(should've)・連結(sent it out)"},
+ {id:"d5", text:"We need to get it done by the end of the day.", point:"連結(get it done)・弱形(to / of)"},
+];
+
+const PASSAGE = "Thank you for your interest in the City Art Museum's membership program. As a member, you will receive free admission to all regular exhibitions, a ten percent discount at the museum shop, and invitations to members-only events throughout the year. Your membership card will arrive by mail within two weeks of payment. If you need to visit the museum before your card arrives, simply show your confirmation email at the front desk. Please note that special exhibitions may require an additional fee, even for members. We look forward to welcoming you to our community of art lovers.";
+
+const WPM_Q = [
+ {q:"会員カードが届く前に入館するには、どうすればいいと書かれていましたか？", opts:["2週間待つ必要がある","追加料金を払う","確認メールをフロントで見せる","美術館に電話する"], ans:2},
+ {q:"会員でも追加料金がかかる可能性があるのは何でしたか？", opts:["通常の展示","会員向けイベント","ミュージアムショップ","特別展"], ans:3},
+];
+
+/* ================= 状態 ================= */
+const S = {
+  phase:"intro",          // intro → vocab → grammar → dict → wpm → wpmq → result
+  quizList:[], quizIdx:0, quizSel:null,
+  vocabAns:[], grammarAns:[], wpmAns:[],
+  dictIdx:0, dictPlays:0, dictAns:[],
+  times:{},               // 所要秒
+  wpm:0, wordCount: PASSAGE.split(/\s+/).length,
+  sectionStart:0, timerHandle:null,
+};
+
+function $(id){return document.getElementById(id);}
+function show(id){
+  ["view-intro","view-quiz","view-dict","view-wpm-intro","view-wpm-read","view-result"].forEach(v=>$(v).classList.add("hidden"));
+  $(id).classList.remove("hidden");
+  window.scrollTo(0,0);
+}
+function setProgress(){
+  const steps={intro:0,vocab:1,grammar:2,dict:3,wpm:4,wpmq:4.5,result:5};
+  $("pbar").style.width=(steps[S.phase]/5*100)+"%";
+}
+function fmt(sec){return Math.floor(sec/60)+":"+String(Math.floor(sec%60)).padStart(2,"0");}
+function startTimer(elId){
+  clearInterval(S.timerHandle);
+  S.sectionStart=Date.now();
+  if(elId){S.timerHandle=setInterval(()=>{ const el=$(elId); if(el) el.textContent=fmt((Date.now()-S.sectionStart)/1000); },500);}
+}
+function stopTimer(key){
+  clearInterval(S.timerHandle);
+  S.times[key]=Math.round((Date.now()-S.sectionStart)/1000);
+}
+
+/* ================= クイズ(語彙・文法) ================= */
+function startTest(){
+  S.phase="vocab"; setProgress();
+  S.quizList=VOCAB; S.quizIdx=0;
+  startTimer("q-timer");
+  show("view-quiz"); renderQ();
+}
+function renderQ(){
+  const item=S.quizList[S.quizIdx];
+  $("q-tag").textContent = S.phase==="vocab" ? "パート1：語彙" : S.phase==="grammar" ? "パート2：文法" : "パート4：内容確認";
+  $("q-count").textContent = "Q"+(S.quizIdx+1)+" / "+S.quizList.length;
+  $("q-text").innerHTML = item.q;
+  S.quizSel=null; $("q-next").disabled=true;
+  const box=$("q-opts"); box.innerHTML="";
+  const opts=[...item.opts, UNKNOWN];
+  opts.forEach((o,i)=>{
+    const b=document.createElement("button");
+    b.className="opt"; b.textContent=o;
+    b.onclick=()=>{ S.quizSel=(i===item.opts.length? -1 : i);
+      [...box.children].forEach(c=>c.classList.remove("sel")); b.classList.add("sel");
+      $("q-next").disabled=false; };
+    box.appendChild(b);
+  });
+  $("q-next").textContent=(S.quizIdx===S.quizList.length-1)?"このパートを終える":"次へ";
+}
+function nextQ(){
+  (S.phase==="vocab"?S.vocabAns:S.phase==="grammar"?S.grammarAns:S.wpmAns).push(S.quizSel);
+  S.quizIdx++;
+  if(S.quizIdx<S.quizList.length){ renderQ(); return; }
+  if(S.phase==="vocab"){
+    stopTimer("vocab");
+    S.phase="grammar"; setProgress(); S.quizList=GRAMMAR; S.quizIdx=0;
+    startTimer("q-timer"); renderQ();
+  } else if(S.phase==="grammar"){
+    stopTimer("grammar");
+    S.phase="dict"; setProgress(); S.dictIdx=0;
+    startTimer("d-timer"); show("view-dict"); renderDict();
+  } else { // wpmq
+    stopTimer("wpmq");
+    S.phase="result"; setProgress(); renderResult();
+  }
+}
+
+/* ================= ディクテーション ================= */
+let audioEl=new Audio();
+function renderDict(){
+  $("d-count").textContent="Q"+(S.dictIdx+1)+" / "+DICT.length;
+  S.dictPlays=0;
+  $("d-plays-left").textContent="(あと2回)";
+  $("d-play").disabled=false;
+  $("d-input").value="";
+  $("d-next").textContent=(S.dictIdx===DICT.length-1)?"このパートを終える":"次へ";
+}
+function playDict(){
+  if(S.dictPlays>=2) return;
+  S.dictPlays++;
+  $("d-plays-left").textContent="(あと"+(2-S.dictPlays)+"回)";
+  if(S.dictPlays>=2) $("d-play").disabled=true;
+  audioEl.src="audio/"+DICT[S.dictIdx].id+".mp3";
+  audioEl.play();
+}
+function nextDict(){
+  S.dictAns.push($("d-input").value.trim());
+  audioEl.pause();
+  S.dictIdx++;
+  if(S.dictIdx<DICT.length){ renderDict(); return; }
+  stopTimer("dict");
+  S.phase="wpm"; setProgress(); show("view-wpm-intro");
+}
+
+/* ================= WPM ================= */
+function startWpm(){
+  $("w-passage").textContent=PASSAGE;
+  show("view-wpm-read");
+  startTimer("w-timer");
+}
+function endWpm(){
+  const sec=(Date.now()-S.sectionStart)/1000;
+  stopTimer("wpmRead");
+  S.wpm=Math.round(S.wordCount/(sec/60));
+  S.phase="wpmq"; setProgress();
+  S.quizList=WPM_Q; S.quizIdx=0; S.wpmAns=[];
+  startTimer("q-timer");
+  show("view-quiz");
+  renderQ();
+}
+
+/* ================= 採点 ================= */
+const CONTRACTIONS={"i'll":"i will","we'll":"we will","he'll":"he will","she'll":"she will","they'll":"they will","you'll":"you will",
+"don't":"do not","doesn't":"does not","didn't":"did not","can't":"can not","cannot":"can not","won't":"will not","isn't":"is not","aren't":"are not","wasn't":"was not",
+"must've":"must have","should've":"should have","could've":"could have","would've":"would have","there's":"there is","it's":"it is","that's":"that is",
+"i'm":"i am","we're":"we are","they're":"they are","you're":"you are","he's":"he is","she's":"she is","we've":"we have","i've":"i have","you've":"you have","they've":"they have","gonna":"going to","wanna":"want to"};
+function normWords(s){
+  return s.toLowerCase().replace(/[’‘]/g,"'").replace(/[^a-z0-9' ]/g," ").split(/\s+/).filter(Boolean)
+    .flatMap(w=>(CONTRACTIONS[w]||w).split(" "));
+}
+function lcs(a,b){ // 単語配列のLCS → aの各語が一致したか
+  const m=a.length,n=b.length;
+  const dp=Array.from({length:m+1},()=>new Array(n+1).fill(0));
+  for(let i=m-1;i>=0;i--)for(let j=n-1;j>=0;j--)
+    dp[i][j]=(a[i]===b[j])?dp[i+1][j+1]+1:Math.max(dp[i+1][j],dp[i][j+1]);
+  const hit=new Array(m).fill(false);
+  let i=0,j=0;
+  while(i<m&&j<n){ if(a[i]===b[j]){hit[i]=true;i++;j++;} else if(dp[i+1][j]>=dp[i][j+1])i++; else j++; }
+  return hit;
+}
+function gradeDict(){
+  let totalW=0, hitW=0;
+  const rows=DICT.map((d,k)=>{
+    const target=normWords(d.text), user=normWords(S.dictAns[k]||"");
+    const hit=lcs(target,user);
+    totalW+=target.length; hitW+=hit.filter(Boolean).length;
+    return {d, hit, target, perfect:hit.every(Boolean)&&user.length===target.length};
+  });
+  return {rows, acc: totalW? Math.round(hitW/totalW*100):0, perfectCount: rows.filter(r=>r.perfect).length};
+}
+function tally(list,ansArr,keyFn){
+  const g={};
+  list.forEach((item,i)=>{
+    const k=keyFn(item);
+    g[k]=g[k]||{ok:0,total:0};
+    g[k].total++;
+    if(ansArr[i]===item.ans) g[k].ok++;
+  });
+  return g;
+}
+
+/* ================= 結果 ================= */
+function wpmVerdict(w){
+  if(w<80)  return ["ゆっくり","返り読みの癖がある可能性大。精読＋音読から。"];
+  if(w<110) return ["基礎レベル","内容は追えるが、TOEICでは時間切れになる速さ。"];
+  if(w<150) return ["標準","Part7をほぼ完走できるライン。精度を上げる段階。"];
+  return ["速い","速度は十分。設問処理と精度に集中してOK。"];
+}
+function bandLabel(b){return b==="A"?"基礎(〜500点帯)":b==="B"?"中級(〜700点帯)":"上級(〜860点帯)";}
+function renderResult(){
+  const v=tally(VOCAB,S.vocabAns,x=>x.band);
+  const g=tally(GRAMMAR,S.grammarAns,x=>x.type);
+  const dict=gradeDict();
+  const wq=WPM_Q.filter((x,i)=>S.wpmAns[i]===x.ans).length;
+  const [wLabel,wComment]=wpmVerdict(S.wpm);
+  const vTotal=VOCAB.filter((x,i)=>S.vocabAns[i]===x.ans).length;
+  const gTotal=GRAMMAR.filter((x,i)=>S.grammarAns[i]===x.ans).length;
+
+  // 弱点判定(優先度順の処方)
+  const rx=[];
+  if(dict.acc<70) rx.push("<b>音の処理(連結・弱形)が最優先。</b>知っている単語が聞き取れていません。音声変化のルール学習＋ディクテーションから始めるのが近道です。");
+  const weakG=Object.entries(g).filter(([k,s])=>s.ok<s.total).map(([k])=>k);
+  if(weakG.length) rx.push("文法は <b>"+weakG.join("・")+"</b> に穴があります。ここをタイプ別に潰すとPart5の正答率が一気に上がります。");
+  if((v.A&&v.A.ok<v.A.total)) rx.push("<b>基礎語彙に抜けがあります。</b>難しい単語帳より先に、基礎帯の単語を固めてください。");
+  else if(v.B&&v.B.ok<v.B.total-1) rx.push("語彙は<b>700点帯で失速</b>しています。金フレ700レベルの反復が効きます。");
+  if(S.wpm<110) rx.push("読解スピード(WPM "+S.wpm+")は<b>要強化</b>。"+wComment);
+  if(!rx.length) rx.push("大きな穴はありません。上級語彙と速読の精度を上げる段階です。");
+
+  const bandRow=(["A","B","C"]).map(b=>{
+    const s=v[b]||{ok:0,total:0};
+    return "<tr><td>"+bandLabel(b)+"</td><td class='num'>"+s.ok+" / "+s.total+"</td><td>"+(s.ok===s.total?"<span class='b-ok'>安定</span>":s.ok===0?"<span class='b-ng'>未習得</span>":"<span class='b-ng'>不安定</span>")+"</td></tr>";
+  }).join("");
+  const gRow=Object.entries(g).map(([k,s])=>
+    "<tr><td>"+k+"</td><td class='num'>"+s.ok+" / "+s.total+"</td><td>"+(s.ok===s.total?"<span class='b-ok'>OK</span>":"<span class='b-ng'>穴あり</span>")+"</td></tr>").join("");
+  const dictRows=dict.rows.map((r,i)=>{
+    const words=r.target.map((w,k)=>"<span class='"+(r.hit[k]?"w-ok":"w-ng")+"'>"+w+"</span>").join(" ");
+    return "<div class='diffline'>Q"+(i+1)+"："+words+" <span style='color:var(--sub);font-size:12px;'>…"+r.d.point+"</span></div>";
+  }).join("");
+
+  $("view-result").innerHTML=`
+  <div class="card">
+    <span class="tag">診断結果：弱点マップ</span>
+    <div class="score-grid">
+      <div class="score-box"><div class="label">語彙</div><div class="val">${vTotal} <small>/10</small></div></div>
+      <div class="score-box"><div class="label">文法</div><div class="val">${gTotal} <small>/10</small></div></div>
+      <div class="score-box"><div class="label">聞き取り(単語一致率)</div><div class="val">${dict.acc}<small>%</small></div></div>
+      <div class="score-box"><div class="label">読解スピード</div><div class="val">${S.wpm} <small>WPM</small></div></div>
+    </div>
+
+    <h3 class="sec">語彙：どの帯まで安定しているか</h3>
+    <table><tr><th>レベル帯</th><th>正答</th><th>判定</th></tr>${bandRow}</table>
+
+    <h3 class="sec">文法：タイプ別の穴</h3>
+    <table><tr><th>出題タイプ</th><th>正答</th><th>判定</th></tr>${gRow}</table>
+
+    <h3 class="sec">聞き取り：落とした単語(赤)</h3>
+    ${dictRows}
+    <p class="note">完全一致 ${dict.perfectCount}/5 文。赤字は「書き取れなかった単語」＝音声変化で消えた音です。</p>
+
+    <h3 class="sec">読解スピード</h3>
+    <p style="font-size:14px; margin:4px 0;">${S.wpm} WPM(${wLabel})・内容理解 ${wq}/2 ${wq<2?"<span class='b-ng'>※速くても理解が伴っていない可能性</span>":""}</p>
+    <p class="note">${wComment} 目安：TOEIC完走ライン ≈ 150WPM</p>
+
+    <h3 class="sec">今やるべきこと(優先順)</h3>
+    <div class="verdict">${rx.map((r,i)=>"<p style='margin:4px 0;'>"+(i+1)+". "+r+"</p>").join("")}</div>
+
+    <div class="btn-row" style="justify-content:center; margin-top:20px;">
+      <button class="btn ghost" onclick="copyResult()">結果をコピー(コーチ送信用)</button>
+      <button class="btn" onclick="location.reload()">もう一度</button>
+    </div>
+    <p class="note center" id="copy-done" style="color:var(--ok); visibility:hidden;">コピーしました。LINEに貼り付けて送ってください。</p>
+  </div>`;
+  window.RESULT_SUMMARY = buildSummary(v,g,dict,wq,vTotal,gTotal);
+  show("view-result");
+}
+function buildSummary(v,g,dict,wq,vTotal,gTotal){
+  const lines=["【英語力診断テスト結果】"+new Date().toLocaleDateString("ja-JP"),
+   "■語彙 "+vTotal+"/10（基礎"+(v.A?v.A.ok:0)+"/3・700帯"+(v.B?v.B.ok:0)+"/4・860帯"+(v.C?v.C.ok:0)+"/3）",
+   "■文法 "+gTotal+"/10",
+   ...Object.entries(g).map(([k,s])=>"　・"+k+" "+s.ok+"/"+s.total),
+   "■聞き取り 単語一致率"+dict.acc+"%（完全一致"+dict.perfectCount+"/5文）",
+   "■読解 "+S.wpm+"WPM・内容理解"+wq+"/2",
+   "■所要時間 語彙"+fmt(S.times.vocab||0)+" 文法"+fmt(S.times.grammar||0)+" 聞き取り"+fmt(S.times.dict||0)];
+  return lines.join("\n");
+}
+function copyResult(){
+  navigator.clipboard.writeText(window.RESULT_SUMMARY||"").then(()=>{
+    $("copy-done").style.visibility="visible";
+  }).catch(()=>{ prompt("コピーできない場合は手動で:", window.RESULT_SUMMARY); });
+}
+setProgress();
+</script>
+</body>
+</html>
